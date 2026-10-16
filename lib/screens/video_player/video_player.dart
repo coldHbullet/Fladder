@@ -68,7 +68,6 @@ class _VideoPlayerState extends ConsumerState<VideoPlayer> with WidgetsBindingOb
   Widget build(BuildContext context) {
     final fillScreen = ref.watch(videoPlayerSettingsProvider.select((value) => value.fillScreen));
     final videoFit = ref.watch(videoPlayerSettingsProvider.select((value) => value.videoFit));
-    final padding = MediaQuery.of(context).padding;
 
     final playerController = ref.watch(videoPlayerProvider.select((value) => value));
 
@@ -95,13 +94,13 @@ class _VideoPlayerState extends ConsumerState<VideoPlayer> with WidgetsBindingOb
       },
     );
 
-    final player = Padding(
-      padding: fillScreen ? EdgeInsets.zero : EdgeInsets.only(left: padding.left, right: padding.right),
-      child: playerController.videoWidget(
-        const Key("VideoPlayer"),
-        fillScreen ? (MediaQuery.of(context).orientation == Orientation.portrait ? videoFit : BoxFit.cover) : videoFit,
-      ),
-    );
+    final wantedFit =
+        fillScreen ? (MediaQuery.of(context).orientation == Orientation.portrait ? videoFit : BoxFit.cover) : videoFit;
+    final player = playerController.videoWidget(
+      const Key("VideoPlayer"),
+      // "Fill" would stretch the picture; cover fills the screen and keeps the aspect ratio.
+      wantedFit == BoxFit.fill ? BoxFit.cover : wantedFit,
+    ) ?? const SizedBox.shrink();
 
     return BackIntentDpad(
       child: Material(
